@@ -10,23 +10,26 @@ from dmoj.utils.unicode import utf8text
 executor = None
 
 
-def get_executor(files, lang, compiler_time_limit, problem_id):
+def get_executor(files, lang, flags, cached, compiler_time_limit, problem_id):
     global executor
 
     if executor is None:
-        if not isinstance(files, list):
-            files = [files]
-        filenames = [os.path.join(get_problem_root(problem_id), f) for f in files]
-        executor = compile_with_auxiliary_files(filenames, lang, compiler_time_limit)
+        if isinstance(files, str):
+            filenames = [files]
+        elif isinstance(files.unwrap(), list):
+            filenames = list(files.unwrap())
+
+        filenames = [os.path.join(get_problem_root(problem_id), f) for f in filenames]
+        executor = compile_with_auxiliary_files(filenames, flags, lang, compiler_time_limit, cached)
 
     return executor
 
 
 def check(process_output, judge_output, judge_input, problem_id,
           files, lang, time_limit=env['generator_time_limit'], memory_limit=env['generator_memory_limit'],
-          compiler_time_limit=env['generator_compiler_limit'], feedback=True,
+          compiler_time_limit=env['generator_compiler_limit'], flags=[], feedback=True, cached=True,
           point_value=None, **kwargs) -> CheckerResult:
-    executor = get_executor(files, lang, compiler_time_limit, problem_id)
+    executor = get_executor(files, lang, flags, cached, compiler_time_limit, problem_id)
 
     with mktemp(judge_input) as input_file, mktemp(process_output) as output_file, mktemp(judge_output) as judge_file:
         process = executor.launch(input_file.name, output_file.name, judge_file.name, stdout=subprocess.PIPE,

@@ -243,6 +243,7 @@ class TestCase:
         time_limit = env.generator_time_limit
         memory_limit = env.generator_memory_limit
         compiler_time_limit = env.generator_compiler_time_limit
+        cached = True
         lang = None  # Default to C/C++
 
         base = get_problem_root(self.problem.id)
@@ -266,6 +267,7 @@ class TestCase:
             time_limit = gen.time_limit or time_limit
             memory_limit = gen.memory_limit or memory_limit
             compiler_time_limit = gen.compiler_time_limit or compiler_time_limit
+            cached = gen.get('cached', True)
             lang = gen.language
 
         if not isinstance(filenames, list):
@@ -273,7 +275,7 @@ class TestCase:
 
         filenames = [os.path.join(base, name) for name in filenames]
         executor = self.problem.generator_manager.get_generator(filenames, flags, lang=lang,
-                                                                compiler_time_limit=compiler_time_limit)
+                                                                compiler_time_limit=compiler_time_limit, cached=cached)
 
         # convert all args to str before launching; allows for smoother int passing
         args = map(str, args)
