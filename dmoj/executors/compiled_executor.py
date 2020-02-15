@@ -153,7 +153,11 @@ class CompiledExecutor(BaseExecutor, metaclass=_CompiledExecutorMeta):
 
                 # Mark compiler process as first to die in an OOM situation, just to ensure that the judge will not
                 # be killed.
-                oom_score_adj(OOM_SCORE_ADJ_MAX)
+                try:
+                    oom_score_adj(OOM_SCORE_ADJ_MAX)
+                except Exception:
+                    import traceback
+                    traceback.print_exc()
                 resource.setrlimit(resource.RLIMIT_FSIZE, (self.executable_size, self.executable_size))
 
             return limit_executable
