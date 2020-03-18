@@ -50,9 +50,13 @@ class Interactor:
         try:
             ret = int(token)
         except ValueError:
-            raise WrongAnswer('expected int, got "%s"' % (self._abbreviate(token)))
+            raise WrongAnswer(
+                'expected int, got "%s"' % (self._abbreviate(token))
+            )
         if not lo <= ret <= hi:
-            raise WrongAnswer('expected int in range [%.0f, %.0f], got %d' % (lo, hi, ret))
+            raise WrongAnswer(
+                'expected int in range [%.0f, %.0f], got %d' % (lo, hi, ret)
+            )
         return ret
 
     def readfloat(self, lo=float('-inf'), hi=float('inf'), delim=None):
@@ -60,9 +64,13 @@ class Interactor:
         try:
             ret = float(token)
         except ValueError:
-            raise WrongAnswer('expected float, got "%s"' % (self._abbreviate(token)))
+            raise WrongAnswer(
+                'expected float, got "%s"' % (self._abbreviate(token))
+            )
         if not lo <= ret <= hi:
-            raise WrongAnswer('expected float in range [%.2f %.2f], got %.2f' % (lo, hi, ret))
+            raise WrongAnswer(
+                'expected float in range [%.2f %.2f], got %.2f' % (lo, hi, ret)
+            )
         return ret
 
     def write(self, val):
@@ -100,7 +108,11 @@ class InteractiveGrader(StandardGrader):
             # This results in a TLE verdict getting full points, which should not be the case
             return False
         if not isinstance(self.check, CheckerResult):
-            return CheckerResult(self.check, case.points if self.check else 0.0, feedback=self.feedback)
+            return CheckerResult(
+                self.check,
+                case.points if self.check else 0.0,
+                feedback=self.feedback,
+            )
         return self.check
 
     def interact(self, case, interactor):

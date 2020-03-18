@@ -12,8 +12,18 @@ class ListProblemsCommand(Command):
     help = 'Lists the problems available to be graded on this judge.'
 
     def _populate_parser(self):
-        self.arg_parser.add_argument('filter', nargs='?', help='regex filter for problem names (optional)')
-        self.arg_parser.add_argument('-l', '--limit', type=int, help='limit number of results', metavar='<limit>')
+        self.arg_parser.add_argument(
+            'filter',
+            nargs='?',
+            help='regex filter for problem names (optional)',
+        )
+        self.arg_parser.add_argument(
+            '-l',
+            '--limit',
+            type=int,
+            help='limit number of results',
+            metavar='<limit>',
+        )
 
     def execute(self, line):
         _args = self.arg_parser.parse_args(line)
@@ -25,10 +35,12 @@ class ListProblemsCommand(Command):
 
         if _args.filter:
             r = re.compile(_args.filter)
-            all_problems = list(filter(lambda x: r.match(x[0]) is not None, all_problems))
+            all_problems = list(
+                filter(lambda x: r.match(x[0]) is not None, all_problems)
+            )
 
         if _args.limit:
-            all_problems = all_problems[:_args.limit]
+            all_problems = all_problems[: _args.limit]
 
         if len(all_problems):
             problems = iter(map(itemgetter(0), all_problems))

@@ -35,8 +35,15 @@ class BaseExecutor(PlatformExecutorMixin):
 
     _dir: Optional[str] = None
 
-    def __init__(self, problem_id: str, source_code: bytes, dest_dir: Optional[str] = None,
-                 hints: Optional[List[str]] = None, unbuffered: bool = False, **kwargs):
+    def __init__(
+        self,
+        problem_id: str,
+        source_code: bytes,
+        dest_dir: Optional[str] = None,
+        hints: Optional[List[str]] = None,
+        unbuffered: bool = False,
+        **kwargs
+    ):
         self._tempdir = dest_dir or env.tempdir
         self._dir = None
         self.problem = problem_id
@@ -119,17 +126,32 @@ class BaseExecutor(PlatformExecutorMixin):
         return cls.run_self_test()
 
     @classmethod
-    def run_self_test(cls, output: bool = True,
-                      error_callback: Optional[Callable[[Any], Any]] = None) -> bool:
+    def run_self_test(
+        cls,
+        output: bool = True,
+        error_callback: Optional[Callable[[Any], Any]] = None,
+    ) -> bool:
         if not cls.test_program:
             return True
 
         if output:
-            print_ansi("%-39s%s" % ('Self-testing #ansi[%s](|underline):' % cls.get_executor_name(), ''), end=' ')
+            print_ansi(
+                "%-39s%s"
+                % (
+                    'Self-testing #ansi[%s](|underline):'
+                    % cls.get_executor_name(),
+                    '',
+                ),
+                end=' ',
+            )
         try:
             executor = cls(cls.test_name, utf8bytes(cls.test_program))
-            proc = executor.launch(time=cls.test_time, memory=cls.test_memory,
-                                   stdin=subprocess.PIPE, stdout=subprocess.PIPE)
+            proc = executor.launch(
+                time=cls.test_time,
+                memory=cls.test_memory,
+                stdin=subprocess.PIPE,
+                stdout=subprocess.PIPE,
+            )
 
             test_message = b'echo: Hello, World!'
             stdout, stderr = proc.communicate(test_message + b'\n')
@@ -145,21 +167,43 @@ class BaseExecutor(PlatformExecutorMixin):
             if output:
                 # Cache the versions now, so that the handshake packet doesn't take ages to generate
                 cls.get_runtime_versions()
-                usage = '[%.3fs, %d KB]' % (proc.execution_time, proc.max_memory)
-                print_ansi("%s %-19s" % (['#ansi[Failed](red|bold) ',
-                                          '#ansi[Success](green|bold)'][res], usage), end=' ')
+                usage = '[%.3fs, %d KB]' % (
+                    proc.execution_time,
+                    proc.max_memory,
+                )
+                print_ansi(
+                    "%s %-19s"
+                    % (
+                        [
+                            '#ansi[Failed](red|bold) ',
+                            '#ansi[Success](green|bold)',
+                        ][res],
+                        usage,
+                    ),
+                    end=' ',
+                )
 
                 runtime_version: List[Tuple[str, str]] = []
                 for runtime, version in cls.get_runtime_versions():
                     assert version is not None
-                    runtime_version.append((runtime, '.'.join(map(str, version))))
+                    runtime_version.append(
+                        (runtime, '.'.join(map(str, version)))
+                    )
 
-                print_ansi(', '.join(["#ansi[%s](cyan|bold) %s" % v for v in runtime_version]))
+                print_ansi(
+                    ', '.join(
+                        ["#ansi[%s](cyan|bold) %s" % v for v in runtime_version]
+                    )
+                )
             if stdout.strip() != test_message and error_callback:
-                error_callback('Got unexpected stdout output:\n' + utf8text(stdout))
+                error_callback(
+                    'Got unexpected stdout output:\n' + utf8text(stdout)
+                )
             if stderr:
                 if error_callback:
-                    error_callback('Got unexpected stderr output:\n' + utf8text(stderr))
+                    error_callback(
+                        'Got unexpected stderr output:\n' + utf8text(stderr)
+                    )
                 else:
                     print(stderr, file=sys.stderr)
             if proc.protection_fault:
@@ -181,7 +225,9 @@ class BaseExecutor(PlatformExecutorMixin):
         return [(cls.command, command)]
 
     @classmethod
-    def get_runtime_versions(cls) -> List[Tuple[str, Optional[Tuple[int, ...]]]]:
+    def get_runtime_versions(
+        cls,
+    ) -> List[Tuple[str, Optional[Tuple[int, ...]]]]:
         key = cls.get_executor_name()
         if key in version_cache:
             return version_cache[key]
@@ -198,7 +244,11 @@ class BaseExecutor(PlatformExecutorMixin):
                         command.extend(flag)
                     else:
                         command.append(flag)
-                    output = utf8text(subprocess.check_output(command, stderr=subprocess.STDOUT))
+                    output = utf8text(
+                        subprocess.check_output(
+                            command, stderr=subprocess.STDOUT
+                        )
+                    )
                 except subprocess.CalledProcessError:
                     pass
                 else:
@@ -211,7 +261,9 @@ class BaseExecutor(PlatformExecutorMixin):
         return version_cache[key]
 
     @classmethod
-    def parse_version(cls, command: str, output: str) -> Optional[Tuple[int, ...]]:
+    def parse_version(
+        cls, command: str, output: str
+    ) -> Optional[Tuple[int, ...]]:
         match = cls.version_regex.match(output)
         if match:
             return tuple(map(int, match.group(1).split('.')))
@@ -234,7 +286,9 @@ class BaseExecutor(PlatformExecutorMixin):
         return None
 
     @classmethod
-    def autoconfig_find_first(cls, mapping) -> Tuple[Optional[dict], bool, str, str]:
+    def autoconfig_find_first(
+        cls, mapping
+    ) -> Tuple[Optional[dict], bool, str, str]:
         if mapping is None:
             return {}, False, 'Unimplemented', ''
         result = {}
@@ -251,7 +305,9 @@ class BaseExecutor(PlatformExecutorMixin):
         executor: Any = type('Executor', (cls,), {'runtime_dict': result})
         executor.__module__ = cls.__module__
         errors: List[str] = []
-        success = executor.run_self_test(output=False, error_callback=errors.append)
+        success = executor.run_self_test(
+            output=False, error_callback=errors.append
+        )
         if success:
             message = ''
             if len(result) == 1:

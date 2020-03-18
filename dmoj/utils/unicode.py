@@ -40,5 +40,7 @@ def utf8text(maybe_bytes, errors='strict') -> Optional[str]:
 
 
 def unicode_stdout_stderr():
-    sys.stdout = codecs.getwriter('utf-8')(open(sys.stdout.fileno(), 'wb', 0, closefd=False))
+    sys.stdout = codecs.getwriter('utf-8')(
+        open(sys.stdout.fileno(), 'wb', 0, closefd=False)
+    )
     sys.stderr = codecs.getwriter('utf-8')(sys.stderr.detach())

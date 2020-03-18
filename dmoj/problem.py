@@ -38,23 +38,30 @@ class Problem:
         try:
             doc = yaml.safe_load(self.problem_data['init.yml'])
             if not doc:
-                raise InvalidInitException('I find your lack of content disturbing.')
-            self.config = ConfigNode(doc, defaults={
-                'wall_time_factor': 3,
-                'output_prefix_length': 64,
-                'output_limit_length': 25165824,
-                'binary_data': False,
-                'short_circuit': True,
-                'symlinks': {},
-                'meta': meta,
-            })
+                raise InvalidInitException(
+                    'I find your lack of content disturbing.'
+                )
+            self.config = ConfigNode(
+                doc,
+                defaults={
+                    'wall_time_factor': 3,
+                    'output_prefix_length': 64,
+                    'output_limit_length': 25165824,
+                    'binary_data': False,
+                    'short_circuit': True,
+                    'symlinks': {},
+                    'meta': meta,
+                },
+            )
         except (IOError, KeyError, ParserError, ScannerError) as e:
             raise InvalidInitException(str(e))
 
         self.problem_data.archive = self._resolve_archive_files()
         self._resolve_test_cases()
 
-    def _match_test_cases(self, filenames, input_case_pattern, output_case_pattern, case_points):
+    def _match_test_cases(
+        self, filenames, input_case_pattern, output_case_pattern, case_points
+    ):
         def try_match_int(match, group):
             try:
                 val = match.group(group)
@@ -83,7 +90,10 @@ class Problem:
         groups = defaultdict(lambda: defaultdict(_TestCase))
         batch_ids = set()
 
-        for filetype, pattern in (('input_file', input_case_pattern), ('output_file', output_case_pattern)):
+        for filetype, pattern in (
+            ('input_file', input_case_pattern),
+            ('output_file', output_case_pattern),
+        ):
             for testcase_file in filenames:
                 testcase_parse = parse_position(pattern, testcase_file)
                 if testcase_parse is None:
@@ -91,7 +101,9 @@ class Problem:
 
                 batch, case = testcase_parse
                 if case is None:
-                    raise InvalidInitException('test case format yielded no case number')
+                    raise InvalidInitException(
+                        'test case format yielded no case number'
+                    )
                 if batch is not None:
                     batch_ids.add(batch)
 
@@ -101,22 +113,31 @@ class Problem:
         for batch_or_case_id in sorted(groups.keys()):
             group_cases = groups[batch_or_case_id]
             if batch_or_case_id in batch_ids:
-                test_cases.append({
-                    'batched': [{
-                        'in': testcase.input_file,
-                        'out': testcase.output_file,
-                    } for _, testcase in sorted(group_cases.items())],
-                    'points': next(case_points),
-                })
+                test_cases.append(
+                    {
+                        'batched': [
+                            {
+                                'in': testcase.input_file,
+                                'out': testcase.output_file,
+                            }
+                            for _, testcase in sorted(group_cases.items())
+                        ],
+                        'points': next(case_points),
+                    }
+                )
             else:
                 if len(group_cases) > 1:
-                    raise InvalidInitException('problem has conflicting test cases: %s' % group_cases)
+                    raise InvalidInitException(
+                        'problem has conflicting test cases: %s' % group_cases
+                    )
                 test_case = next(iter(group_cases.values()))
-                test_cases.append({
-                    'in': test_case.input_file,
-                    'out': test_case.output_file,
-                    'points': next(case_points),
-                })
+                test_cases.append(
+                    {
+                        'in': test_case.input_file,
+                        'out': test_case.output_file,
+                        'points': next(case_points),
+                    }
+                )
 
         return test_cases
 
@@ -124,7 +145,9 @@ class Problem:
         # We *could* support testcase format specifiers without an archive, but it's harder and most problems should be
         # using archives in the first place.
         if not self.problem_data.archive:
-            raise InvalidInitException('can only use test case format specifiers if `archive` is set')
+            raise InvalidInitException(
+                'can only use test case format specifiers if `archive` is set'
+            )
         return self.problem_data.archive.namelist()
 
     def _resolve_test_cases(self):
@@ -142,22 +165,38 @@ class Problem:
         # If the `test_cases` node is None, we try to guess the testcase name format.
         self.config['test_cases'] = self._match_test_cases(
             self._problem_file_list(),
-            re.compile(get_with_default('input_format', DEFAULT_TEST_CASE_INPUT_PATTERN), re.IGNORECASE),
-            re.compile(get_with_default('output_format', DEFAULT_TEST_CASE_OUTPUT_PATTERN), re.IGNORECASE),
+            re.compile(
+                get_with_default(
+                    'input_format', DEFAULT_TEST_CASE_INPUT_PATTERN
+                ),
+                re.IGNORECASE,
+            ),
+            re.compile(
+                get_with_default(
+                    'output_format', DEFAULT_TEST_CASE_OUTPUT_PATTERN
+                ),
+                re.IGNORECASE,
+            ),
             iter(get_with_default('case_points', itertools.repeat(1))),
         )
 
     def load_checker(self, name):
         if name in self._checkers:
             return self._checkers[name]
-        self._checkers[name] = checker = load_module_from_file(os.path.join(get_problem_root(self.id), name))
+        self._checkers[name] = checker = load_module_from_file(
+            os.path.join(get_problem_root(self.id), name)
+        )
         return checker
 
     def _resolve_archive_files(self):
         if self.config.archive:
-            archive_path = os.path.join(get_problem_root(self.id), self.config.archive)
+            archive_path = os.path.join(
+                get_problem_root(self.id), self.config.archive
+            )
             if not os.path.exists(archive_path):
-                raise InvalidInitException('archive file "%s" does not exist' % archive_path)
+                raise InvalidInitException(
+                    'archive file "%s" does not exist' % archive_path
+                )
             try:
                 archive = zipfile.ZipFile(archive_path, 'r')
             except zipfile.BadZipfile:
@@ -195,7 +234,9 @@ class BatchedTestCase:
         self.batch_no = batch_no
         self.points = config.points
         self.batched_cases = cases
-        if any(isinstance(case, BatchedTestCase) for case in self.batched_cases):
+        if any(
+            isinstance(case, BatchedTestCase) for case in self.batched_cases
+        ):
             raise InvalidInitException("nested batches")
         self.problem = problem
 
@@ -273,27 +314,41 @@ class TestCase:
             filenames = [filenames]
 
         filenames = [os.path.join(base, name) for name in filenames]
-        executor = self.problem.generator_manager.get_generator(filenames, flags, lang=lang,
-                                                                compiler_time_limit=compiler_time_limit)
+        executor = self.problem.generator_manager.get_generator(
+            filenames, flags, lang=lang, compiler_time_limit=compiler_time_limit
+        )
 
         # convert all args to str before launching; allows for smoother int passing
         args = map(str, args)
 
         # setting large buffers is really important, because otherwise stderr is unbuffered
         # and the generator begins calling into cptbox Python code really frequently
-        proc = executor.launch(*args, time=time_limit, memory=memory_limit,
-                               stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE,
-                               stderr_buffer_size=65536, stdout_buffer_size=65536)
+        proc = executor.launch(
+            *args,
+            time=time_limit,
+            memory=memory_limit,
+            stdin=subprocess.PIPE,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+            stderr_buffer_size=65536,
+            stdout_buffer_size=65536
+        )
 
         try:
-            input = self.problem.problem_data[self.config['in']] if self.config['in'] else None
+            input = (
+                self.problem.problem_data[self.config['in']]
+                if self.config['in']
+                else None
+            )
         except KeyError:
             input = None
 
         stdout, stderr = proc.unsafe_communicate(input)
         self._generated = list(map(self._normalize, (stdout, stderr)))
 
-        parse_helper_file_error(proc, executor, 'generator', stderr, time_limit, memory_limit)
+        parse_helper_file_error(
+            proc, executor, 'generator', stderr, time_limit, memory_limit
+        )
 
     def input_data(self):
         gen = self.config.generator
@@ -306,7 +361,11 @@ class TestCase:
             if self._generated[0]:
                 return self._generated[0]
         # in file is optional
-        return self._normalize(self.problem.problem_data[self.config['in']]) if self.config['in'] else b''
+        return (
+            self._normalize(self.problem.problem_data[self.config['in']])
+            if self.config['in']
+            else b''
+        )
 
     def output_data(self):
         if self.config.out:
@@ -330,13 +389,17 @@ class TestCase:
                 try:
                     checker = self.problem.load_checker(name)
                 except IOError:
-                    raise InvalidInitException('checker module path does not exist: %s' % name)
+                    raise InvalidInitException(
+                        'checker module path does not exist: %s' % name
+                    )
             else:
                 checker = getattr(checkers, name)
         except AttributeError as e:
             raise InvalidInitException('error loading checker: ' + str(e))
         if not hasattr(checker, 'check') or not callable(checker.check):
-            raise InvalidInitException('malformed checker: no check method found')
+            raise InvalidInitException(
+                'malformed checker: no check method found'
+            )
 
         return partial(checker.check, **params)
 
@@ -344,4 +407,8 @@ class TestCase:
         self._generated = None
 
     def __str__(self):
-        return 'TestCase{in=%s,out=%s,points=%s}' % (self.config['in'], self.config['out'], self.config['points'])
+        return 'TestCase{in=%s,out=%s,points=%s}' % (
+            self.config['in'],
+            self.config['out'],
+            self.config['points'],
+        )

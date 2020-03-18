@@ -12,7 +12,9 @@ if os.name == 'nt':
     print('DMOJ is unsupported on Windows.', file=sys.stderr)
     sys.exit(1)
 
-has_pyx = os.path.exists(os.path.join(os.path.dirname(__file__), 'dmoj', 'cptbox', '_cptbox.pyx'))
+has_pyx = os.path.exists(
+    os.path.join(os.path.dirname(__file__), 'dmoj', 'cptbox', '_cptbox.pyx')
+)
 
 try:
     with open('/proc/version') as f:
@@ -27,7 +29,10 @@ try:
     from Cython.Build import cythonize
 except ImportError:
     if has_pyx:
-        print('You need to install cython first before installing DMOJ.', file=sys.stderr)
+        print(
+            'You need to install cython first before installing DMOJ.',
+            file=sys.stderr,
+        )
         print('Run: pip install cython', file=sys.stderr)
         print('Or if you do not have pip: easy_install cython', file=sys.stderr)
         sys.exit(1)
@@ -75,11 +80,16 @@ class build_ext_dmoj(build_ext, object):
                 extra_compile_args.append('-march=%s' % target_arch)
             elif is_arm:
                 print('*' * 79)
-                print('Building on ARM, specify DMOJ_TARGET_ARCH to CPU-specific arch for GCC!')
+                print(
+                    'Building on ARM, specify DMOJ_TARGET_ARCH to CPU-specific arch for GCC!'
+                )
                 print('Compiling slower generic build.')
                 print('*' * 79)
         else:
-            extra_compile_args += ['-march=%s' % (target_arch or 'native'), '-O3']
+            extra_compile_args += [
+                '-march=%s' % (target_arch or 'native'),
+                '-O3',
+            ]
 
         for module in self.distribution.ext_modules:
             module.extra_compile_args = extra_compile_args
@@ -93,15 +103,26 @@ class build_ext_dmoj(build_ext, object):
         print('*' * 79)
 
 
-cptbox_sources = ['_cptbox.pyx', 'helper.cpp', 'ptdebug.cpp', 'ptdebug_x86.cpp', 'ptdebug_x64.cpp',
-                  'ptdebug_x86_on_x64.cpp', 'ptdebug_x32.cpp', 'ptdebug_arm.cpp', 'ptdebug_arm64.cpp',
-                  'ptproc.cpp']
+cptbox_sources = [
+    '_cptbox.pyx',
+    'helper.cpp',
+    'ptdebug.cpp',
+    'ptdebug_x86.cpp',
+    'ptdebug_x64.cpp',
+    'ptdebug_x86_on_x64.cpp',
+    'ptdebug_x32.cpp',
+    'ptdebug_arm.cpp',
+    'ptdebug_arm64.cpp',
+    'ptproc.cpp',
+]
 
 if not has_pyx:
     cptbox_sources[0] = cptbox_sources[0].replace('.pyx', '.cpp')
 
 SOURCE_DIR = os.path.dirname(__file__)
-cptbox_sources = [os.path.join(SOURCE_DIR, 'dmoj', 'cptbox', f) for f in cptbox_sources]
+cptbox_sources = [
+    os.path.join(SOURCE_DIR, 'dmoj', 'cptbox', f) for f in cptbox_sources
+]
 
 libs = ['rt']
 
@@ -120,12 +141,23 @@ if not has_seccomp:
     print('*' * 79)
     macros.append(('PTBOX_NO_SECCOMP', None))
 
-extensions = [Extension('dmoj.checkers._checker', sources=['dmoj/checkers/_checker.c']),
-              Extension('dmoj.cptbox._cptbox', sources=cptbox_sources,
-                        language='c++', libraries=libs, define_macros=macros),
-              SimpleSharedObject('dmoj.utils.setbufsize', sources=['dmoj/utils/setbufsize.c'])]
+extensions = [
+    Extension('dmoj.checkers._checker', sources=['dmoj/checkers/_checker.c']),
+    Extension(
+        'dmoj.cptbox._cptbox',
+        sources=cptbox_sources,
+        language='c++',
+        libraries=libs,
+        define_macros=macros,
+    ),
+    SimpleSharedObject(
+        'dmoj.utils.setbufsize', sources=['dmoj/utils/setbufsize.c']
+    ),
+]
 
-with io.open(os.path.join(os.path.dirname(__file__), 'README.md'), encoding='utf-8') as f:
+with io.open(
+    os.path.join(os.path.dirname(__file__), 'README.md'), encoding='utf-8'
+) as f:
     readme = f.read()
 
 setup(
@@ -144,13 +176,17 @@ setup(
         ],
     },
     ext_modules=cythonize(extensions),
-    install_requires=['watchdog', 'pyyaml', 'termcolor', 'pygments', 'setproctitle', 'pylru'],
+    install_requires=[
+        'watchdog',
+        'pyyaml',
+        'termcolor',
+        'pygments',
+        'setproctitle',
+        'pylru',
+    ],
     tests_require=['requests'],
-    extras_require={
-        'test': ['requests'],
-    },
+    extras_require={'test': ['requests'],},
     cmdclass={'build_ext': build_ext_dmoj},
-
     author='DMOJ Team',
     author_email='contact@dmoj.ca',
     url='https://github.com/DMOJ/judge',

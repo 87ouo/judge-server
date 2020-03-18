@@ -16,14 +16,27 @@ executors: Dict[str, Any] = {}
 
 
 def get_available():
-    return get_available_modules(_reexecutor, os.path.dirname(__file__), only_executors,
-                                 exclude_executors | _unsupported_executors)
+    return get_available_modules(
+        _reexecutor,
+        os.path.dirname(__file__),
+        only_executors,
+        exclude_executors | _unsupported_executors,
+    )
 
 
 def load_executor(name):
-    return load_module('%s.%s' % (__name__, name), ('No module named "_cptbox"', 'No module named "termios"'))
+    return load_module(
+        '%s.%s' % (__name__, name),
+        ('No module named "_cptbox"', 'No module named "termios"'),
+    )
 
 
 def load_executors():
-    load_modules(get_available(), load_executor, 'Executor', executors, _unsupported_executors,
-                 loading_message='Self-testing executors')
+    load_modules(
+        get_available(),
+        load_executor,
+        'Executor',
+        executors,
+        _unsupported_executors,
+        loading_message='Self-testing executors',
+    )

@@ -30,7 +30,11 @@ def make_override(home, parent, expr):
 
 def get_dirs(d):
     try:
-        return [item for item in os.listdir(d) if os.path.isdir(os.path.join(d, item))]
+        return [
+            item
+            for item in os.listdir(d)
+            if os.path.isdir(os.path.join(d, item))
+        ]
     except OSError:
         return []
 
@@ -43,11 +47,15 @@ def ci_test(executors_to_test, overrides, allow_fail=frozenset()):
     for name in executors_to_test:
         executor = import_module('dmoj.executors.' + name)
 
-        print_ansi('%-34s%s' % ('Testing #ansi[%s](|underline):' % name, ''), end=' ')
+        print_ansi(
+            '%-34s%s' % ('Testing #ansi[%s](|underline):' % name, ''), end=' '
+        )
 
         if not hasattr(executor, 'Executor'):
             failed = True
-            print_ansi('#ansi[Does not export](red|bold) #ansi[Executor](red|underline)')
+            print_ansi(
+                '#ansi[Does not export](red|bold) #ansi[Executor](red|underline)'
+            )
             continue
 
         if not hasattr(executor.Executor, 'autoconfig'):
@@ -74,23 +82,34 @@ def ci_test(executors_to_test, overrides, allow_fail=frozenset()):
                 failed = True
                 failed_executors.append(name)
         else:
-            print_ansi(['#ansi[%s](red|bold)', '#ansi[%s](green|bold)'][success] %
-                       (feedback or ['Failed', 'Success'][success]))
+            print_ansi(
+                ['#ansi[%s](red|bold)', '#ansi[%s](green|bold)'][success]
+                % (feedback or ['Failed', 'Success'][success])
+            )
 
             if success:
                 result.update(config)
                 executor.Executor.runtime_dict = config
                 executors[name] = executor
                 for runtime, ver in executor.Executor.get_runtime_versions():
-                    print_ansi('  #ansi[%s](cyan): %s' % (runtime, '.'.join(map(str, ver))) if ver else 'unknown')
+                    print_ansi(
+                        '  #ansi[%s](cyan): %s'
+                        % (runtime, '.'.join(map(str, ver)))
+                        if ver
+                        else 'unknown'
+                    )
             else:
                 if feedback == 'Could not find JVM':
                     continue
 
                 if config:
                     print('  Attempted:')
-                    print('   ',
-                          yaml.safe_dump(config, default_flow_style=False).rstrip().replace('\n', '\n' + ' ' * 4))
+                    print(
+                        '   ',
+                        yaml.safe_dump(config, default_flow_style=False)
+                        .rstrip()
+                        .replace('\n', '\n' + ' ' * 4),
+                    )
 
                 if errors:
                     print('  Errors:')
@@ -101,18 +120,26 @@ def ci_test(executors_to_test, overrides, allow_fail=frozenset()):
 
     print()
     print_ansi('#ansi[Configuration result](green|bold|underline):')
-    print(yaml.safe_dump({'runtime': result}, default_flow_style=False).rstrip())
+    print(
+        yaml.safe_dump({'runtime': result}, default_flow_style=False).rstrip()
+    )
     print()
     if failed:
         print_ansi('#ansi[Executor configuration failed.](red|bold)')
-        print_ansi('#ansi[Failed executors:](|bold)', ', '.join(failed_executors))
+        print_ansi(
+            '#ansi[Failed executors:](|bold)', ', '.join(failed_executors)
+        )
     else:
         print_ansi('#ansi[Executor configuration succeeded.](green|bold)')
     load_contrib_modules()
     print()
     print()
     print('Running test cases...')
-    judgeenv.problem_dirs = [os.path.normpath(os.path.join(os.path.dirname(__file__), '..', 'testsuite'))]
+    judgeenv.problem_dirs = [
+        os.path.normpath(
+            os.path.join(os.path.dirname(__file__), '..', 'testsuite')
+        )
+    ]
     tester = Tester()
     fails = tester.test_all()
     print()

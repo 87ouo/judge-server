@@ -14,7 +14,14 @@ from dmoj.cptbox.syscalls import SYSCALL_COUNT, by_id, translator
 from dmoj.error import InternalError
 from dmoj.utils.communicate import safe_communicate as _safe_communicate
 from dmoj.utils.os_ext import (
-    ARCH_A64, ARCH_ARM, ARCH_X32, ARCH_X64, ARCH_X86, INTERPRETER_ARCH, file_arch, find_exe_in_path,
+    ARCH_A64,
+    ARCH_ARM,
+    ARCH_X32,
+    ARCH_X64,
+    ARCH_X86,
+    INTERPRETER_ARCH,
+    file_arch,
+    find_exe_in_path,
 )
 from dmoj.utils.unicode import utf8bytes, utf8text
 
@@ -89,30 +96,59 @@ class TracedPopenMeta(type):
         arch = file_arch(executable)
         debugger = _arch_map.get((INTERPRETER_ARCH, arch))
         if debugger is None:
-            raise RuntimeError('Executable type %s could not be debugged on Python type %s' % (arch, INTERPRETER_ARCH))
-        return super().__call__(debugger, self.debugger_type, argv, executable, *args, **kwargs)
+            raise RuntimeError(
+                'Executable type %s could not be debugged on Python type %s'
+                % (arch, INTERPRETER_ARCH)
+            )
+        return super().__call__(
+            debugger, self.debugger_type, argv, executable, *args, **kwargs
+        )
 
 
 class TracedPopen(Process, metaclass=TracedPopenMeta):
     debugger_type = AdvancedDebugger
 
-    def __init__(self, debugger, _, args, executable=None, security=None, time=0, memory=0, stdin=PIPE, stdout=PIPE,
-                 stderr=None, env=None, nproc=0, fsize=0, address_grace=4096, data_grace=0, personality=0, cwd='',
-                 fds=None, wall_time=None):
+    def __init__(
+        self,
+        debugger,
+        _,
+        args,
+        executable=None,
+        security=None,
+        time=0,
+        memory=0,
+        stdin=PIPE,
+        stdout=PIPE,
+        stderr=None,
+        env=None,
+        nproc=0,
+        fsize=0,
+        address_grace=4096,
+        data_grace=0,
+        personality=0,
+        cwd='',
+        fds=None,
+        wall_time=None,
+    ):
         self._debugger_type = debugger
         self._syscall_index = index = _SYSCALL_INDICIES[debugger]
         self._executable = executable or find_exe_in_path(args[0])
         self._args = args
         self._chdir = cwd
-        self._env = [utf8bytes('%s=%s' % (arg, val))
-                     for arg, val in (env if env is not None else os.environ).items() if val is not None]
+        self._env = [
+            utf8bytes('%s=%s' % (arg, val))
+            for arg, val in (env if env is not None else os.environ).items()
+            if val is not None
+        ]
         self._time = time
         self._wall_time = time * 3 if wall_time is None else wall_time
         self._cpu_time = time + 5 if time else 0
         self._memory = memory
         self._child_personality = personality
         self._child_memory = memory * 1024 + data_grace * 1024
-        self._child_address = memory * 1024 + address_grace * 1024 if memory else 0
+        self._child_address = (
+            memory * 1024 + address_grace * 1024 if memory else 0
+        )
         self._nproc = nproc
         self._fsize = fsize
         self._is_tle = False
@@ -122,7 +158,9 @@ class TracedPopen(Process, metaclass=TracedPopenMeta):
         self.protection_fault = None
 
         self.debugger._syscall_index = index
-        self.debugger.address_bits = 64 if debugger in (DEBUGGER_X64, DEBUGGER_ARM64) else 32
+        self.debugger.address_bits = (
+            64 if debugger in (DEBUGGER_X64, DEBUGGER_ARM64) else 32
+        )
 
         self._security = security
         self._callbacks = [None] * MAX_SYSCALL_NUMBER
@@ -159,9 +197,11 @@ class TracedPopen(Process, metaclass=TracedPopenMeta):
             if self.returncode == 203:
                 raise RuntimeError('failed to set up seccomp policy')
             elif self.returncode == 204:
-                raise RuntimeError('failed to ptrace child, check Yama config '
-                                   '(https://www.kernel.org/doc/Documentation/security/Yama.txt, should be '
-                                   'at most 1); if running in Docker, must run container with `--cap-add=SYS_PTRACE`')
+                raise RuntimeError(
+                    'failed to ptrace child, check Yama config '
+                    '(https://www.kernel.org/doc/Documentation/security/Yama.txt, should be '
+                    'at most 1); if running in Docker, must run container with `--cap-add=SYS_PTRACE`'
+                )
         return self.returncode
 
     def poll(self):
@@ -184,7 +224,9 @@ class TracedPopen(Process, metaclass=TracedPopenMeta):
 
     @property
     def is_rte(self):
-        return self.returncode is None or self.returncode < 0  # Killed by signal
+        return (
+            self.returncode is None or self.returncode < 0
+        )  # Killed by signal
 
     @property
     def is_tle(self):
@@ -196,6 +238,7 @@ class TracedPopen(Process, metaclass=TracedPopenMeta):
             os.killpg(self.pid, signal.SIGKILL)
         except OSError:
             import traceback
+
             traceback.print_exc()
 
     def _callback(self, syscall):
@@ -204,7 +247,7 @@ class TracedPopen(Process, metaclass=TracedPopenMeta):
         except IndexError:
             if self._syscall_index == 3:
                 # ARM-specific
-                return 0xf0000 < syscall < 0xf0006
+                return 0xF0000 < syscall < 0xF0006
             return False
 
         if callback is not None:
@@ -223,20 +266,27 @@ class TracedPopen(Process, metaclass=TracedPopenMeta):
             # raise InternalError('ptrace error: %d (%s: %s)' % (err, errno.errorcode[err], os.strerror(err)))
         else:
             callname = self.debugger.get_syscall_name(syscall)
-            self.protection_fault = (syscall, callname, [self.debugger.uarg0, self.debugger.uarg1,
-                                                         self.debugger.uarg2, self.debugger.uarg3,
-                                                         self.debugger.uarg4, self.debugger.uarg5])
+            self.protection_fault = (
+                syscall,
+                callname,
+                [
+                    self.debugger.uarg0,
+                    self.debugger.uarg1,
+                    self.debugger.uarg2,
+                    self.debugger.uarg3,
+                    self.debugger.uarg4,
+                    self.debugger.uarg5,
+                ],
+            )
 
     def _cpu_time_exceeded(self):
         log.warning('SIGXCPU in process %d', self.pid)
         self._is_tle = True
 
     def _run_process(self):
-        self._spawn(self._executable,
-                    self._args,
-                    self._env,
-                    self._chdir,
-                    self._fds)
+        self._spawn(
+            self._executable, self._args, self._env, self._chdir, self._fds
+        )
 
         if self.stdin_needs_close:
             os.close(self._child_stdin)
@@ -260,11 +310,16 @@ class TracedPopen(Process, metaclass=TracedPopenMeta):
         # On FreeBSD, a signal must not be ignored in order for wait4 to return.
         # Hence, we swallow SIGSTOP, which should never be used anyway, and use it
         # force an update.
-        wake_signal = signal.SIGSTOP if 'freebsd' in sys.platform else signal.SIGWINCH
+        wake_signal = (
+            signal.SIGSTOP if 'freebsd' in sys.platform else signal.SIGWINCH
+        )
         self._started.wait()
 
         while not self._exited:
-            if self.execution_time > self._time or self.wall_clock_time > self._wall_time:
+            if (
+                self.execution_time > self._time
+                or self.wall_clock_time > self._wall_time
+            ):
                 log.warning('Shocker activated and killed %d', self.pid)
                 os.killpg(self.pid, signal.SIGKILL)
                 self._is_tle = True
@@ -279,7 +334,9 @@ class TracedPopen(Process, metaclass=TracedPopenMeta):
 
     def __init_streams(self, stdin, stdout, stderr):
         self.stdin = self.stdout = self.stderr = None
-        self.stdin_needs_close = self.stdout_needs_close = self.stderr_needs_close = False
+        self.stdin_needs_close = (
+            self.stdout_needs_close
+        ) = self.stderr_needs_close = False
 
         if stdin == PIPE:
             self._child_stdin, self._stdin = os.pipe()
@@ -317,7 +374,9 @@ class TracedPopen(Process, metaclass=TracedPopenMeta):
     communicate = _safe_communicate
 
     def unsafe_communicate(self, input=None):
-        return _safe_communicate(self, input=input, outlimit=sys.maxsize, errlimit=sys.maxsize)
+        return _safe_communicate(
+            self, input=input, outlimit=sys.maxsize, errlimit=sys.maxsize
+        )
 
 
 def can_debug(arch):

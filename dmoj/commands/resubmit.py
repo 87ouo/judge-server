@@ -11,14 +11,35 @@ class ResubmitCommand(Command):
     help = 'Resubmit a submission with different parameters.'
 
     def _populate_parser(self):
-        self.arg_parser.add_argument('submission_id', type=int, help='id of submission to resubmit')
-        self.arg_parser.add_argument('-p', '--problem', help='id of problem to grade', metavar='<problem id>')
-        self.arg_parser.add_argument('-l', '--language', help='id of the language to grade in (e.g., PY2)',
-                                     metavar='<language id>')
-        self.arg_parser.add_argument('-tl', '--time-limit', type=float, help='time limit for grading, in seconds',
-                                     metavar='<time limit>')
-        self.arg_parser.add_argument('-ml', '--memory-limit', type=int, help='memory limit for grading, in kilobytes',
-                                     metavar='<memory limit>')
+        self.arg_parser.add_argument(
+            'submission_id', type=int, help='id of submission to resubmit'
+        )
+        self.arg_parser.add_argument(
+            '-p',
+            '--problem',
+            help='id of problem to grade',
+            metavar='<problem id>',
+        )
+        self.arg_parser.add_argument(
+            '-l',
+            '--language',
+            help='id of the language to grade in (e.g., PY2)',
+            metavar='<language id>',
+        )
+        self.arg_parser.add_argument(
+            '-tl',
+            '--time-limit',
+            type=float,
+            help='time limit for grading, in seconds',
+            metavar='<time limit>',
+        )
+        self.arg_parser.add_argument(
+            '-ml',
+            '--memory-limit',
+            type=int,
+            help='memory limit for grading, in kilobytes',
+            metavar='<memory limit>',
+        )
 
     def execute(self, line):
         args = self.arg_parser.parse_args(line)
@@ -43,4 +64,14 @@ class ResubmitCommand(Command):
 
         self.judge.submission_id_counter += 1
         self.judge.graded_submissions.append((id, lang, src, tl, ml))
-        self.judge.begin_grading(self.judge.submission_id_counter, id, lang, src, tl, ml, False, {}, blocking=True)
+        self.judge.begin_grading(
+            self.judge.submission_id_counter,
+            id,
+            lang,
+            src,
+            tl,
+            ml,
+            False,
+            {},
+            blocking=True,
+        )

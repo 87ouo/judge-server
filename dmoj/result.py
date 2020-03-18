@@ -56,11 +56,15 @@ class Result:
 
     @property
     def output(self):
-        return utf8text(self.proc_output[:self.case.output_prefix_length], 'replace')
+        return utf8text(
+            self.proc_output[: self.case.output_prefix_length], 'replace'
+        )
 
     @classmethod
     def get_feedback_str(cls, error, process, binary):
-        is_ir_or_rte = (process.is_ir or process.is_rte) and not (process.is_tle or process.is_mle or process.is_ole)
+        is_ir_or_rte = (process.is_ir or process.is_rte) and not (
+            process.is_tle or process.is_mle or process.is_ole
+        )
         if hasattr(process, 'feedback'):
             feedback = process.feedback
         elif is_ir_or_rte:
@@ -86,7 +90,9 @@ class Result:
         return feedback
 
     def update_feedback(self, error, process, binary, feedback=None):
-        self.feedback = feedback or self.get_feedback_str(error, process, binary)
+        self.feedback = feedback or self.get_feedback_str(
+            error, process, binary
+        )
 
 
 class CheckerResult:

@@ -2,7 +2,9 @@ import os.path
 
 from dmoj.executors.java_executor import JavaExecutor
 
-with open(os.path.join(os.path.dirname(__file__), 'java-security.policy')) as policy_file:
+with open(
+    os.path.join(os.path.dirname(__file__), 'java-security.policy')
+) as policy_file:
     policy = policy_file.read()
 
 
@@ -31,7 +33,13 @@ fun main(args: Array<String>) {
         return res
 
     def get_compile_args(self):
-        return [self.get_compiler(), '-include-runtime', '-d', self._jar_name, self._code]
+        return [
+            self.get_compiler(),
+            '-include-runtime',
+            '-d',
+            self._jar_name,
+            self._code,
+        ]
 
     @classmethod
     def get_versionable_commands(cls):
@@ -47,4 +55,6 @@ fun main(args: Array<String>) {
         if java is None:
             return None, False, 'Failed to find "java"'
 
-        return cls.autoconfig_run_test({cls.compiler: kotlinc, cls.vm: cls.unravel_java(java)})
+        return cls.autoconfig_run_test(
+            {cls.compiler: kotlinc, cls.vm: cls.unravel_java(java)}
+        )

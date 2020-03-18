@@ -11,8 +11,16 @@ class DifferenceCommand(Command):
     help = 'Shows difference between two files.'
 
     def _populate_parser(self):
-        self.arg_parser.add_argument('id_or_source_1', help='id or path of first source', metavar='<source 1>')
-        self.arg_parser.add_argument('id_or_source_2', help='id or path of second source', metavar='<source 2>')
+        self.arg_parser.add_argument(
+            'id_or_source_1',
+            help='id or path of first source',
+            metavar='<source 1>',
+        )
+        self.arg_parser.add_argument(
+            'id_or_source_2',
+            help='id or path of second source',
+            metavar='<source 2>',
+        )
 
     def get_data(self, id_or_source):
         try:
@@ -31,10 +39,19 @@ class DifferenceCommand(Command):
         data1 = self.get_data(file1)
         data2 = self.get_data(file2)
 
-        difference = list(difflib.unified_diff(data1, data2, fromfile=file1, tofile=file2, lineterm=''))
+        difference = list(
+            difflib.unified_diff(
+                data1, data2, fromfile=file1, tofile=file2, lineterm=''
+            )
+        )
         if not difference:
             print('no difference\n')
         else:
             file_diff = '\n'.join(difference)
-            print(pygments.highlight(file_diff, pygments.lexers.DiffLexer(),
-                                     pygments.formatters.Terminal256Formatter()))
+            print(
+                pygments.highlight(
+                    file_diff,
+                    pygments.lexers.DiffLexer(),
+                    pygments.formatters.Terminal256Formatter(),
+                )
+            )

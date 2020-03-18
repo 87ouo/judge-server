@@ -11,7 +11,9 @@ try:
     from watchdog.observers import Observer
     from watchdog.events import FileSystemEventHandler
 except ImportError:
-    startup_warnings.append('watchdog module not found, install it to automatically update problems')
+    startup_warnings.append(
+        'watchdog module not found, install it to automatically update problems'
+    )
     Observer = None
 
 logger = logging.getLogger(__name__)
@@ -45,7 +47,9 @@ class RefreshWorker(Thread):
                     with closing(urlopen(url, data='')) as f:
                         f.read()
                 except Exception:
-                    logger.exception('Failed to ping for problem update: %s', url)
+                    logger.exception(
+                        'Failed to ping for problem update: %s', url
+                    )
 
 
 class SendProblemsHandler(FileSystemEventHandler):
@@ -64,7 +68,9 @@ class Monitor:
     def __init__(self):
         if Observer is not None and not judgeenv.no_watchdog:
             if judgeenv.env.update_pings:
-                logger.info('Using thread to ping urls: %r', judgeenv.env.update_pings)
+                logger.info(
+                    'Using thread to ping urls: %r', judgeenv.env.update_pings
+                )
                 self._refresher = RefreshWorker(judgeenv.env.update_pings)
             else:
                 self._refresher = None
@@ -97,7 +103,9 @@ class Monitor:
                 self._monitor.start()
             except OSError:
                 logger.exception('Failed to start problem monitor.')
-                print_ansi('#ansi[Warning: failed to start problem monitor!](yellow)')
+                print_ansi(
+                    '#ansi[Warning: failed to start problem monitor!](yellow)'
+                )
         if self._refresher is not None:
             self._refresher.start()
 

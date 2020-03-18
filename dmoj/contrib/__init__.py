@@ -10,7 +10,9 @@ contrib_modules: Dict[str, Any] = {}
 
 
 def get_available():
-    return get_available_modules(_recontribmodule, os.path.dirname(__file__), None, None)
+    return get_available_modules(
+        _recontribmodule, os.path.dirname(__file__), None, None
+    )
 
 
 def load_contrib_module(name):
@@ -18,4 +20,10 @@ def load_contrib_module(name):
 
 
 def load_contrib_modules():
-    load_modules(get_available(), load_contrib_module, 'ContribModule', contrib_modules, ())
+    load_modules(
+        get_available(),
+        load_contrib_module,
+        'ContribModule',
+        contrib_modules,
+        (),
+    )

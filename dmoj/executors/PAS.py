@@ -19,7 +19,13 @@ end.
 
     def get_compile_output(self, process):
         output = super().get_compile_output(process)
-        return output if b'Fatal:' in output or b'Warning:' in output or b'Note:' in output else ''
+        return (
+            output
+            if b'Fatal:' in output
+            or b'Warning:' in output
+            or b'Note:' in output
+            else ''
+        )
 
     @classmethod
     def get_version_flags(cls, command):

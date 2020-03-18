@@ -29,7 +29,9 @@ class ASMExecutor(CompiledExecutor):
     ext = 'asm'
 
     def __init__(self, problem_id, source_code, *args, **kwargs):
-        self.use_qemu = self.qemu_path is not None and os.path.isfile(self.qemu_path)
+        self.use_qemu = self.qemu_path is not None and os.path.isfile(
+            self.qemu_path
+        )
         self.features = self.find_features(source_code)
 
         super().__init__(problem_id, source_code + b'\n', *args, **kwargs)
@@ -53,7 +55,9 @@ class ASMExecutor(CompiledExecutor):
 
     def assemble(self):
         object = self._file('%s.o' % self.problem)
-        process = subprocess.Popen(self.get_as_args(object), cwd=self._dir, stderr=subprocess.PIPE)
+        process = subprocess.Popen(
+            self.get_as_args(object), cwd=self._dir, stderr=subprocess.PIPE
+        )
         as_output = process.communicate()[1]
         if process.returncode != 0:
             raise CompileError(as_output)
@@ -64,18 +68,31 @@ class ASMExecutor(CompiledExecutor):
         as_output, to_link = self.assemble()
 
         if 'libc' in self.features:
-            to_link = ['-dynamic-linker', self.dynamic_linker] + self.crt_pre + ['-lc'] + to_link + self.crt_post
+            to_link = (
+                ['-dynamic-linker', self.dynamic_linker]
+                + self.crt_pre
+                + ['-lc']
+                + to_link
+                + self.crt_post
+            )
 
         executable = self._file(self.problem)
-        process = TimedPopen([self.get_ld_path(), '-s', '-o', executable, '-m', self.ld_m] + to_link,
-                             cwd=self._dir, stderr=subprocess.PIPE, preexec_fn=self.create_executable_limits(),
-                             time_limit=self.compiler_time_limit)
+        process = TimedPopen(
+            [self.get_ld_path(), '-s', '-o', executable, '-m', self.ld_m]
+            + to_link,
+            cwd=self._dir,
+            stderr=subprocess.PIPE,
+            preexec_fn=self.create_executable_limits(),
+            time_limit=self.compiler_time_limit,
+        )
         ld_output = process.communicate()[1]
         if process.returncode != 0:
             raise CompileError(ld_output)
 
         if as_output or ld_output:
-            self.warning = ('%s\n%s' % (utf8text(as_output), utf8text(ld_output))).strip()
+            self.warning = (
+                '%s\n%s' % (utf8text(as_output), utf8text(ld_output))
+            ).strip()
         self._executable = executable
         return executable
 
@@ -92,7 +109,11 @@ class ASMExecutor(CompiledExecutor):
     def get_fs(self):
         fs = super().get_fs()
         if self.use_qemu:
-            fs += ['/proc/sys/vm/mmap_min_addr$', '/etc/qemu-binfmt/', self._executable]
+            fs += [
+                '/proc/sys/vm/mmap_min_addr$',
+                '/etc/qemu-binfmt/',
+                self._executable,
+            ]
         return fs
 
     def get_address_grace(self):
@@ -105,12 +126,25 @@ class ASMExecutor(CompiledExecutor):
     def initialize(cls):
         if cls.qemu_path is None and not can_debug(cls.arch):
             return False
-        if any(i is None for i in
-               (cls.get_as_path(), cls.get_ld_path(), cls.dynamic_linker, cls.crt_pre, cls.crt_post)):
+        if any(
+            i is None
+            for i in (
+                cls.get_as_path(),
+                cls.get_ld_path(),
+                cls.dynamic_linker,
+                cls.crt_pre,
+                cls.crt_post,
+            )
+        ):
             return False
-        if any(not os.path.isfile(i) for i in (cls.get_as_path(), cls.get_ld_path(), cls.dynamic_linker)):
+        if any(
+            not os.path.isfile(i)
+            for i in (cls.get_as_path(), cls.get_ld_path(), cls.dynamic_linker)
+        ):
             return False
-        if any(not os.path.isfile(i) for i in cls.crt_pre) or any(not os.path.isfile(i) for i in cls.crt_post):
+        if any(not os.path.isfile(i) for i in cls.crt_pre) or any(
+            not os.path.isfile(i) for i in cls.crt_post
+        ):
             return False
         return cls.run_self_test()
 
@@ -132,14 +166,17 @@ class GASExecutor(ASMExecutor):
 
     def get_as_args(self, object):
         as_args = [self.get_as_path(), '-o', object, self._code]
-        if os.path.basename(self.get_as_path()) == 'as' and getattr(self, 'as_platform_flag', None):
+        if os.path.basename(self.get_as_path()) == 'as' and getattr(
+            self, 'as_platform_flag', None
+        ):
             as_args += [self.as_platform_flag]
         return as_args
 
     def assemble(self):
         object = self._file('%s.o' % self.problem)
-        process = subprocess.Popen(self.get_as_args(object),
-                                   cwd=self._dir, stderr=subprocess.PIPE)
+        process = subprocess.Popen(
+            self.get_as_args(object), cwd=self._dir, stderr=subprocess.PIPE
+        )
         as_output = process.communicate()[1]
         if process.returncode != 0:
             raise CompileError(as_output)
@@ -150,8 +187,10 @@ class GASExecutor(ASMExecutor):
     def get_find_first_mapping(cls):
         if cls.platform_prefixes is None:
             return None
-        return {cls.as_name: ['%s-as' % i for i in cls.platform_prefixes] + ['as'],
-                cls.ld_name: ['%s-ld' % i for i in cls.platform_prefixes] + ['ld']}
+        return {
+            cls.as_name: ['%s-as' % i for i in cls.platform_prefixes] + ['as'],
+            cls.ld_name: ['%s-ld' % i for i in cls.platform_prefixes] + ['ld'],
+        }
 
 
 class NASMExecutor(ASMExecutor):
@@ -166,17 +205,31 @@ class NASMExecutor(ASMExecutor):
         return features
 
     def get_as_args(self, object):
-        return [self.get_as_path(), '-f', self.nasm_format, self._code, '-o', object]
+        return [
+            self.get_as_path(),
+            '-f',
+            self.nasm_format,
+            self._code,
+            '-o',
+            object,
+        ]
 
     @classmethod
     def get_version_flags(cls, command):
-        return ['-version'] if command == cls.as_name else super().get_version_flags(command)
+        return (
+            ['-version']
+            if command == cls.as_name
+            else super().get_version_flags(command)
+        )
 
     @classmethod
     def get_find_first_mapping(cls):
         if cls.platform_prefixes is None:
             return None
-        return {cls.ld_name: ['%s-ld' % i for i in cls.platform_prefixes] + ['ld'], 'nasm': ['nasm']}
+        return {
+            cls.ld_name: ['%s-ld' % i for i in cls.platform_prefixes] + ['ld'],
+            'nasm': ['nasm'],
+        }
 
 
 class PlatformX86Mixin(ASMExecutor):
@@ -190,11 +243,19 @@ class PlatformX86Mixin(ASMExecutor):
     dynamic_linker = env.runtime['ld.so_x86'] or '/lib/ld-linux.so.2'
 
     if env.runtime.crt_x86_in_lib32:
-        crt_pre = env.runtime.crt_pre_x86 or ['/usr/lib32/crt1.o', '/usr/lib32/crti.o']
+        crt_pre = env.runtime.crt_pre_x86 or [
+            '/usr/lib32/crt1.o',
+            '/usr/lib32/crti.o',
+        ]
         crt_post = env.runtime.crt_post_x86 or ['/usr/lib32/crtn.o']
     else:
-        crt_pre = env.runtime.crt_pre_x86 or ['/usr/lib/i386-linux-gnu/crt1.o', '/usr/lib/i386-linux-gnu/crti.o']
-        crt_post = env.runtime.crt_post_x86 or ['/usr/lib/i386-linux-gnu/crtn.o']
+        crt_pre = env.runtime.crt_pre_x86 or [
+            '/usr/lib/i386-linux-gnu/crt1.o',
+            '/usr/lib/i386-linux-gnu/crti.o',
+        ]
+        crt_post = env.runtime.crt_post_x86 or [
+            '/usr/lib/i386-linux-gnu/crtn.o'
+        ]
 
 
 class PlatformX64Mixin(ASMExecutor):
@@ -206,5 +267,8 @@ class PlatformX64Mixin(ASMExecutor):
 
     qemu_path = env.runtime.qemu_x64
     dynamic_linker = env.runtime['ld.so_x64'] or '/lib64/ld-linux-x86-64.so.2'
-    crt_pre = env.runtime.crt_pre_x64 or ['/usr/lib/x86_64-linux-gnu/crt1.o', '/usr/lib/x86_64-linux-gnu/crti.o']
+    crt_pre = env.runtime.crt_pre_x64 or [
+        '/usr/lib/x86_64-linux-gnu/crt1.o',
+        '/usr/lib/x86_64-linux-gnu/crti.o',
+    ]
     crt_post = env.runtime.crt_post_x64 or ['/usr/lib/x86_64-linux-gnu/crtn.o']

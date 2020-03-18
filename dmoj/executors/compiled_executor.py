@@ -34,8 +34,9 @@ class _CompiledExecutorMeta(abc.ABCMeta):
         # to it, __del__ will clean it up.
         executor.is_cached = False
 
-    compiled_binary_cache: Dict[str, 'CompiledExecutor'] = pylru.lrucache(env.compiled_binary_cache_size,
-                                                                          _cleanup_cache_entry)
+    compiled_binary_cache: Dict[str, 'CompiledExecutor'] = pylru.lrucache(
+        env.compiled_binary_cache_size, _cleanup_cache_entry
+    )
 
     def __call__(self, *args, **kwargs) -> 'CompiledExecutor':
         is_cached: bool = kwargs.get('cached', False)
@@ -48,7 +49,10 @@ class _CompiledExecutorMeta(abc.ABCMeta):
 
         # Before writing sources to disk, check if we have this executor in our cache.
         if is_cached:
-            cache_key_material = utf8bytes(obj.__class__.__name__ + obj.__module__) + obj.get_binary_cache_key()
+            cache_key_material = (
+                utf8bytes(obj.__class__.__name__ + obj.__module__)
+                + obj.get_binary_cache_key()
+            )
             cache_key = hashlib.sha384(cache_key_material).hexdigest()
             if cache_key in self.compiled_binary_cache:
                 executor = self.compiled_binary_cache[cache_key]
@@ -129,8 +133,14 @@ class CompiledExecutor(BaseExecutor, metaclass=_CompiledExecutorMeta):
         if not self.is_cached:
             super().cleanup()
 
-    def create_files(self, problem_id: str, source_code: bytes, *args, **kwargs) -> None:
-        self._code = self._file(self.source_filename_format.format(problem_id=problem_id, ext=self.ext))
+    def create_files(
+        self, problem_id: str, source_code: bytes, *args, **kwargs
+    ) -> None:
+        self._code = self._file(
+            self.source_filename_format.format(
+                problem_id=problem_id, ext=self.ext
+            )
+        )
         with open(self._code, 'wb') as fo:
             fo.write(utf8bytes(source_code))
 
@@ -149,7 +159,10 @@ class CompiledExecutor(BaseExecutor, metaclass=_CompiledExecutorMeta):
 
             def limit_executable():
                 os.setpgrp()
-                resource.setrlimit(resource.RLIMIT_FSIZE, (self.executable_size, self.executable_size))
+                resource.setrlimit(
+                    resource.RLIMIT_FSIZE,
+                    (self.executable_size, self.executable_size),
+                )
 
             return limit_executable
         except ImportError:
@@ -166,16 +179,19 @@ class CompiledExecutor(BaseExecutor, metaclass=_CompiledExecutorMeta):
         env = self.get_compile_env() or os.environ.copy()
         env['TERM'] = 'xterm'
 
-        proc = TimedPopen(self.get_compile_args(), **{
-            'stderr': self._slave,
-            'stdout': self._slave,
-            'stdin': self._slave,
-            'cwd': self._dir,
-            'env': env,
-            'preexec_fn': self.create_executable_limits(),
-            'time_limit': self.compiler_time_limit,
-            **self.get_compile_popen_kwargs(),
-        })
+        proc = TimedPopen(
+            self.get_compile_args(),
+            **{
+                'stderr': self._slave,
+                'stdout': self._slave,
+                'stdin': self._slave,
+                'cwd': self._dir,
+                'env': env,
+                'preexec_fn': self.create_executable_limits(),
+                'time_limit': self.compiler_time_limit,
+                **self.get_compile_popen_kwargs(),
+            }
+        )
 
         class io_error_wrapper:
             """
@@ -206,7 +222,9 @@ class CompiledExecutor(BaseExecutor, metaclass=_CompiledExecutorMeta):
         # to output hundreds of megabytes of data as output before being killed by the time limit,
         # which effectively murders the MySQL database waiting on the site server.
         limit = env.compiler_output_character_limit
-        return safe_communicate(process, None, outlimit=limit, errlimit=limit)[self.compile_output_index]
+        return safe_communicate(process, None, outlimit=limit, errlimit=limit)[
+            self.compile_output_index
+        ]
 
     def get_compiled_file(self) -> str:
         return self._file(self.problem)
@@ -229,7 +247,10 @@ class CompiledExecutor(BaseExecutor, metaclass=_CompiledExecutorMeta):
 
         if self.is_failed_compile(process):
             if process.timed_out:
-                output = b'compiler timed out (> %d seconds)' % self.compiler_time_limit
+                output = (
+                    b'compiler timed out (> %d seconds)'
+                    % self.compiler_time_limit
+                )
             self.handle_compile_error(output)
         self.warning = output
 

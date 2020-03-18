@@ -6,4 +6,9 @@ class Executor(ScriptExecutor):
     name = 'TEXT'
     command = 'cat'
     test_program = 'echo: Hello, World!\n'
-    syscalls = ['fadvise64_64', 'fadvise64', 'posix_fadvise', 'arm_fadvise64_64']
+    syscalls = [
+        'fadvise64_64',
+        'fadvise64',
+        'posix_fadvise',
+        'arm_fadvise64_64',
+    ]

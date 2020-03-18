@@ -15,7 +15,9 @@ class SignatureGrader(StandardGrader):
                 siggrader = i
                 break
         else:
-            raise CompileError(b"can't signature grade, why did I get this submission?")
+            raise CompileError(
+                b"can't signature grade, why did I get this submission?"
+            )
 
         if self.language in siggraders:
             aux_sources = {}
@@ -24,18 +26,28 @@ class SignatureGrader(StandardGrader):
             entry_point = self.problem.problem_data[handler_data['entry']]
             header = self.problem.problem_data[handler_data['header']]
 
-            submission_prefix = (
-                '#include "%s"\n'
-                '#define main main_%s\n'
-            ) % (handler_data['header'], str(uuid.uuid4()).replace('-', ''))
+            submission_prefix = ('#include "%s"\n' '#define main main_%s\n') % (
+                handler_data['header'],
+                str(uuid.uuid4()).replace('-', ''),
+            )
 
-            aux_sources[self.problem.id + '_submission'] = utf8bytes(submission_prefix) + self.source
+            aux_sources[self.problem.id + '_submission'] = (
+                utf8bytes(submission_prefix) + self.source
+            )
 
             aux_sources[handler_data['header']] = header
             entry = entry_point
             # Compile as CPP regardless of what the submission language is
-            return executors[siggrader].Executor(self.problem.id, entry, aux_sources=aux_sources,
-                                                 writable=handler_data['writable'] or (1, 2),
-                                                 fds=handler_data['fds'], defines=['-DSIGNATURE_GRADER'])
+            return executors[siggrader].Executor(
+                self.problem.id,
+                entry,
+                aux_sources=aux_sources,
+                writable=handler_data['writable'] or (1, 2),
+                fds=handler_data['fds'],
+                defines=['-DSIGNATURE_GRADER'],
+            )
         else:
-            raise InternalError('no valid runtime for signature grading %s found' % self.language)
+            raise InternalError(
+                'no valid runtime for signature grading %s found'
+                % self.language
+            )

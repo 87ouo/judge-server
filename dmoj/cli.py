@@ -79,8 +79,11 @@ def cli_main():
 
     print('Running local judge...')
 
-    logging.basicConfig(filename=judgeenv.log_file, level=logging.INFO,
-                        format='%(levelname)s %(asctime)s %(module)s %(message)s')
+    logging.basicConfig(
+        filename=judgeenv.log_file,
+        level=logging.INFO,
+        format='%(levelname)s %(asctime)s %(module)s %(message)s',
+    )
 
     judge = LocalJudge()
 
@@ -90,6 +93,7 @@ def cli_main():
     print()
 
     from dmoj.commands import all_commands, commands, register_command
+
     for command in all_commands:
         register_command(command(judge))
 
@@ -119,7 +123,9 @@ def cli_main():
                 return run_command(judgeenv.cli_command)
             else:
                 while True:
-                    command = input(ansi_style("#ansi[dmoj](magenta)#ansi[>](green) ")).strip()
+                    command = input(
+                        ansi_style("#ansi[dmoj](magenta)#ansi[>](green) ")
+                    ).strip()
                     run_command(shlex.split(command))
         except (EOFError, KeyboardInterrupt):
             print()

@@ -31,7 +31,9 @@ class ControlServerTest(unittest.TestCase):
 
     def test_get_404(self):
         self.assertEqual(requests.get(self.connect).status_code, 404)
-        self.assertEqual(requests.get(self.connect + 'update/problems').status_code, 404)
+        self.assertEqual(
+            requests.get(self.connect + 'update/problems').status_code, 404
+        )
         self.update_mock.assert_not_called()
 
     def test_post_404(self):

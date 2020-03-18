@@ -22,8 +22,17 @@ puts $input
         # it can hang the startup process. TCL versions without --version can't be reliably detected either, since
         # they also don't have --help.
         # Here, we just use subprocess to print the TCL version, and use that.
-        process = subprocess.Popen([cls.get_command()], stdout=subprocess.PIPE, stdin=subprocess.PIPE)
+        process = subprocess.Popen(
+            [cls.get_command()], stdout=subprocess.PIPE, stdin=subprocess.PIPE
+        )
         process.stdin.write(b'puts $tcl_version\n')
         process.stdin.close()
         retcode = process.poll()
-        return ('tclsh', tuple(map(int, process.stdout.read().split(b'.'))) if not retcode else ()),
+        return (
+            (
+                'tclsh',
+                tuple(map(int, process.stdout.read().split(b'.')))
+                if not retcode
+                else (),
+            ),
+        )

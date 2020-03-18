@@ -14,4 +14,8 @@ class Executor(ScriptExecutor):
         return [('-e', 'print(version())')]
 
     def get_cmdline(self):
-        return [self.get_command(), '--stack-size=131072', self._code]  # 128MB Stack Limit
+        return [
+            self.get_command(),
+            '--stack-size=131072',
+            self._code,
+        ]  # 128MB Stack Limit

@@ -44,7 +44,9 @@ class ConfigNode:
     node.test_cases[0].batched[1].output_prefix_length == 0
     """
 
-    def __init__(self, raw_config=None, parent=None, defaults=None, dynamic=True):
+    def __init__(
+        self, raw_config=None, parent=None, defaults=None, dynamic=True
+    ):
         self.dynamic = dynamic
         if defaults:
             self.raw_config = defaults
@@ -77,37 +79,50 @@ class ConfigNode:
         if not hasattr(self.raw_config, 'items'):
             raise InvalidInitException('config node is not a dict')
         for key, value in self.raw_config.items():
-            yield key, ConfigNode(value, self, dynamic=self.dynamic) \
-                if isinstance(value, list) or isinstance(value, dict) else value
+            yield key, ConfigNode(
+                value, self, dynamic=self.dynamic
+            ) if isinstance(value, list) or isinstance(value, dict) else value
 
     def __getattr__(self, item):
-        return self[item.replace('_', '-')] if self[item] is None else self[item]
+        return (
+            self[item.replace('_', '-')] if self[item] is None else self[item]
+        )
 
     def __getitem__(self, item):
         try:
             if self.dynamic and isinstance(self.raw_config, dict):
+
                 def run_dynamic_key(dynamic_key, run_func):
                     # Wrap in a ConfigNode so dynamic keys can benefit from the nice features of ConfigNode
-                    local = {'node': ConfigNode(self.raw_config.get(item, {}), self)}
+                    local = {
+                        'node': ConfigNode(self.raw_config.get(item, {}), self)
+                    }
                     try:
                         cfg = run_func(self.raw_config[dynamic_key], local)
                     except Exception as e:
                         import traceback
 
                         traceback.print_exc()
-                        raise InvalidInitException('exception executing dynamic key ' +
-                                                   str(dynamic_key) + ': ' + str(e))
+                        raise InvalidInitException(
+                            'exception executing dynamic key '
+                            + str(dynamic_key)
+                            + ': '
+                            + str(e)
+                        )
                     del self.raw_config[dynamic_key]
                     self.raw_config[item] = cfg
 
                 if item + '++' in self.raw_config:
+
                     def full(code, local):
                         exec(code, local)
                         return local['node']
 
                     run_dynamic_key(item + '++', full)
                 elif item + '+' in self.raw_config:
-                    run_dynamic_key(item + '+', lambda code, local: eval(code, local))
+                    run_dynamic_key(
+                        item + '+', lambda code, local: eval(code, local)
+                    )
 
             cfg = self.raw_config[item]
             if isinstance(cfg, list) or isinstance(cfg, dict):
@@ -135,7 +150,9 @@ class ConfigNode:
         if isinstance(other, (list, dict)):
             return self.raw_config + other
         elif isinstance(other, ConfigNode):
-            return ConfigNode(self.raw_config + other.raw_config, None, dynamic=self.dynamic)
+            return ConfigNode(
+                self.raw_config + other.raw_config, None, dynamic=self.dynamic
+            )
         else:
             return NotImplemented
 

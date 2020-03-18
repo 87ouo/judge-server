@@ -16,4 +16,12 @@ void main() {
     source_filename_format = 'main.{ext}'
 
     def get_compile_args(self):
-        return [self.get_command(), '-O', '-inline', '-release', '-w', self._code, '-of%s' % self.problem]
+        return [
+            self.get_command(),
+            '-O',
+            '-inline',
+            '-release',
+            '-w',
+            self._code,
+            '-of%s' % self.problem,
+        ]

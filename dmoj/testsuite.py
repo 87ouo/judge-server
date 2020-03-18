@@ -18,10 +18,14 @@ class TestManager:
         print(message)
 
     def fail(self, message):
-        self.output('\t\t' + message.replace('\r\n', '\n').replace('\n', '\r\n\t\t'))
+        self.output(
+            '\t\t' + message.replace('\r\n', '\n').replace('\n', '\r\n\t\t')
+        )
         self.failed = True
 
-    def set_expected(self, codes_all, codes_cases, feedback_all, feedback_cases):
+    def set_expected(
+        self, codes_all, codes_cases, feedback_all, feedback_cases
+    ):
         self.failed = False
         self.codes_all = codes_all
         self.codes_cases = codes_cases
@@ -38,18 +42,24 @@ class TestManager:
         code = result.readable_codes()[0]
         if position in self.codes_cases:
             if code not in self.codes_cases[position]:
-                self.fail('Unexpected code for case %d: %s, expecting %s' %
-                          (position, code, ', '.join(self.codes_cases[position])))
+                self.fail(
+                    'Unexpected code for case %d: %s, expecting %s'
+                    % (position, code, ', '.join(self.codes_cases[position]))
+                )
         elif code not in self.codes_all:
-            self.fail('Unexpected global code: %s, expecting %s' %
-                      (code, ', '.join(self.codes_all)))
+            self.fail(
+                'Unexpected global code: %s, expecting %s'
+                % (code, ', '.join(self.codes_all))
+            )
 
         feedback = self.feedback_all
         if position in self.feedback_cases:
             feedback = self.feedback_cases[position]
         if feedback is not None and result.feedback not in feedback:
-            self.fail('Unexpected feedback: "%s", expected: "%s"' %
-                      (result.feedback, '", "'.join(feedback)))
+            self.fail(
+                'Unexpected feedback: "%s", expected: "%s"'
+                % (result.feedback, '", "'.join(feedback))
+            )
 
     def compile_error_packet(self, log):
         if 'CE' not in self.codes_all:
@@ -60,8 +70,9 @@ class TestManager:
 
     def internal_error_packet(self, message):
         allow_IE = 'IE' in self.codes_all
-        allow_feedback = (not self.feedback_all or
-                          any(map(lambda feedback: feedback in message, self.feedback_all)))
+        allow_feedback = not self.feedback_all or any(
+            map(lambda feedback: feedback in message, self.feedback_all)
+        )
         if not allow_IE or not allow_feedback:
             self.fail('Unexpected internal error:\n' + message)
 
@@ -124,43 +135,77 @@ class Tester:
         total_fails = 0
 
         for problem, _ in get_supported_problems():
-            if self.problem_regex is not None and not self.problem_regex.match(problem):
+            if self.problem_regex is not None and not self.problem_regex.match(
+                problem
+            ):
                 continue
             root = get_problem_root(problem)
             test_dir = os.path.join(root, 'tests')
             if os.path.isdir(test_dir):
                 fails = self.test_problem(problem, test_dir)
                 if fails:
-                    self.output(ansi_style('Problem #ansi[%s](cyan|bold) #ansi[failed %d case(s)](red|bold).') %
-                                (problem, fails))
+                    self.output(
+                        ansi_style(
+                            'Problem #ansi[%s](cyan|bold) #ansi[failed %d case(s)](red|bold).'
+                        )
+                        % (problem, fails)
+                    )
                 else:
-                    self.output(ansi_style('Problem #ansi[%s](cyan|bold) passed with flying colours.') % problem)
+                    self.output(
+                        ansi_style(
+                            'Problem #ansi[%s](cyan|bold) passed with flying colours.'
+                        )
+                        % problem
+                    )
                 self.output()
                 total_fails += fails
 
         return total_fails
 
     def test_problem(self, problem, test_dir):
-        self.output(ansi_style('Testing problem #ansi[%s](cyan|bold)...') % problem)
+        self.output(
+            ansi_style('Testing problem #ansi[%s](cyan|bold)...') % problem
+        )
         fails = 0
 
-        dirs = [case for case in os.listdir(test_dir) if self.case_regex is None or self.case_regex.match(case)]
+        dirs = [
+            case
+            for case in os.listdir(test_dir)
+            if self.case_regex is None or self.case_regex.match(case)
+        ]
         for i in range(len(dirs)):
             case = dirs[i]
             case_dir = os.path.join(test_dir, case)
             if os.path.isdir(case_dir):
-                self.output(ansi_style('\tRunning test case #ansi[%s](yellow|bold) for #ansi[%s](cyan|bold)...')
-                            % (case, problem))
+                self.output(
+                    ansi_style(
+                        '\tRunning test case #ansi[%s](yellow|bold) for #ansi[%s](cyan|bold)...'
+                    )
+                    % (case, problem)
+                )
                 try:
                     case_fails = self.run_test_case(problem, case, case_dir)
                 except Exception:
                     fails += 1
-                    self.output(ansi_style('\t#ansi[Test case failed with exception:](red|bold)'))
+                    self.output(
+                        ansi_style(
+                            '\t#ansi[Test case failed with exception:](red|bold)'
+                        )
+                    )
                     self.output(traceback.format_exc())
                 else:
-                    self.output(ansi_style('\tResult of case #ansi[%s](yellow|bold) for #ansi[%s](cyan|bold): ')
-                                % (case, problem) +
-                                ansi_style(['#ansi[Failed](red|bold)', '#ansi[Success](green|bold)'][not case_fails]))
+                    self.output(
+                        ansi_style(
+                            '\tResult of case #ansi[%s](yellow|bold) for #ansi[%s](cyan|bold): '
+                        )
+                        % (case, problem)
+                        + ansi_style(
+                            [
+                                '#ansi[Failed](red|bold)',
+                                '#ansi[Success](green|bold)',
+                            ][not case_fails]
+                        )
+                    )
                     fails += case_fails
 
                 if i != len(dirs) - 1:
@@ -178,16 +223,28 @@ class Tester:
                 pass
 
         if not config:
-            self.output(ansi_style('\t\t#ansi[Skipped](magenta|bold) - No usable test.yml'))
+            self.output(
+                ansi_style(
+                    '\t\t#ansi[Skipped](magenta|bold) - No usable test.yml'
+                )
+            )
             return 0
 
         if 'skip' in config and config['skip']:
-            self.output(ansi_style('\t\t#ansi[Skipped](magenta|bold) - Unsupported on current platform'))
+            self.output(
+                ansi_style(
+                    '\t\t#ansi[Skipped](magenta|bold) - Unsupported on current platform'
+                )
+            )
             return 0
 
         language = config['language']
         if language not in all_executors:
-            self.output(ansi_style('\t\t#ansi[Skipped](magenta|bold) - Language not supported'))
+            self.output(
+                ansi_style(
+                    '\t\t#ansi[Skipped](magenta|bold) - Language not supported'
+                )
+            )
             return 0
         time = config['time']
         memory = config['memory']
@@ -199,12 +256,16 @@ class Tester:
             for file in config['source']:
                 with open(os.path.join(case_dir, file)) as f:
                     sources += [f.read()]
-        codes_all, codes_cases = self.parse_expect(config.get('expect', 'AC'),
-                                                   config.get('cases', {}),
-                                                   self.parse_expected_codes)
-        feedback_all, feedback_cases = self.parse_expect(config.get('feedback'),
-                                                         config.get('feedback_cases', {}),
-                                                         self.parse_feedback)
+        codes_all, codes_cases = self.parse_expect(
+            config.get('expect', 'AC'),
+            config.get('cases', {}),
+            self.parse_expected_codes,
+        )
+        feedback_all, feedback_cases = self.parse_expect(
+            config.get('feedback'),
+            config.get('feedback_cases', {}),
+            self.parse_feedback,
+        )
 
         def output_case(data):
             self.output('\t\t' + data.strip())
@@ -212,9 +273,21 @@ class Tester:
         fails = 0
         for source in sources:
             self.sub_id += 1
-            self.manager.set_expected(codes_all, codes_cases, feedback_all, feedback_cases)
-            self.judge.begin_grading(self.sub_id, problem, language, source, time, memory, False, {}, blocking=True,
-                                     report=output_case)
+            self.manager.set_expected(
+                codes_all, codes_cases, feedback_all, feedback_cases
+            )
+            self.judge.begin_grading(
+                self.sub_id,
+                problem,
+                language,
+                source,
+                time,
+                memory,
+                False,
+                {},
+                blocking=True,
+                report=output_case,
+            )
             fails += self.manager.failed
         return fails
 
@@ -250,8 +323,11 @@ class Tester:
 def main():
     judgeenv.load_env(cli=True, testsuite=True)
 
-    logging.basicConfig(filename=judgeenv.log_file, level=logging.INFO,
-                        format='%(levelname)s %(asctime)s %(module)s %(message)s')
+    logging.basicConfig(
+        filename=judgeenv.log_file,
+        level=logging.INFO,
+        format='%(levelname)s %(asctime)s %(module)s %(message)s',
+    )
 
     executors.load_executors()
     contrib.load_contrib_modules()

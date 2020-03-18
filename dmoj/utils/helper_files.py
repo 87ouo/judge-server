@@ -13,7 +13,9 @@ def mktemp(data):
     return tmp
 
 
-def compile_with_auxiliary_files(filenames, lang=None, compiler_time_limit=None):
+def compile_with_auxiliary_files(
+    filenames, lang=None, compiler_time_limit=None
+):
     from dmoj.executors import executors
     from dmoj.executors.compiled_executor import CompiledExecutor
 
@@ -29,10 +31,18 @@ def compile_with_auxiliary_files(filenames, lang=None, compiler_time_limit=None)
                 return grader
         return None
 
-    use_cpp = any(map(lambda name: os.path.splitext(name)[1] in ['.cpp', '.cc'], filenames))
-    use_c = any(map(lambda name: os.path.splitext(name)[1] in ['.c'], filenames))
+    use_cpp = any(
+        map(
+            lambda name: os.path.splitext(name)[1] in ['.cpp', '.cc'], filenames
+        )
+    )
+    use_c = any(
+        map(lambda name: os.path.splitext(name)[1] in ['.c'], filenames)
+    )
     if lang is None:
-        best_choices = ('CPP17', 'CPP14', 'CPP11', 'CPP03') if use_cpp else ('C11', 'C')
+        best_choices = (
+            ('CPP17', 'CPP14', 'CPP11', 'CPP03') if use_cpp else ('C11', 'C')
+        )
         lang = find_runtime(best_choices)
 
     executor = executors.get(lang)
@@ -45,7 +55,11 @@ def compile_with_auxiliary_files(filenames, lang=None, compiler_time_limit=None)
     executor = type('Executor', (executor,), {'fs': fs})
 
     if issubclass(executor, CompiledExecutor):
-        executor = type('Executor', (executor,), {'compiler_time_limit': compiler_time_limit})
+        executor = type(
+            'Executor',
+            (executor,),
+            {'compiler_time_limit': compiler_time_limit},
+        )
 
     # Optimize the common case.
     if use_cpp or use_c:
@@ -53,20 +67,28 @@ def compile_with_auxiliary_files(filenames, lang=None, compiler_time_limit=None)
         executor = executor('_aux_file', None, aux_sources=sources, cached=True)
     else:
         if len(sources) > 1:
-            raise InternalError('non-C/C++ auxilary programs cannot be multi-file')
+            raise InternalError(
+                'non-C/C++ auxilary programs cannot be multi-file'
+            )
         executor = executor('_aux_file', list(sources.values())[0])
 
     return executor
 
 
-def parse_helper_file_error(proc, executor, name, stderr, time_limit, memory_limit):
+def parse_helper_file_error(
+    proc, executor, name, stderr, time_limit, memory_limit
+):
     if proc.is_tle:
         error = '%s timed out (> %d seconds)' % (name, time_limit)
     elif proc.is_mle:
         error = '%s ran out of memory (> %s Kb)' % (name, memory_limit)
     elif proc.protection_fault:
         syscall, callname, args = proc.protection_fault
-        error = '%s invoked disallowed syscall %s (%s)' % (name, syscall, callname)
+        error = '%s invoked disallowed syscall %s (%s)' % (
+            name,
+            syscall,
+            callname,
+        )
     elif proc.returncode:
         if proc.returncode > 0:
             error = '%s exited with nonzero code %d' % (name, proc.returncode)

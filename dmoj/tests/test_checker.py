@@ -40,13 +40,17 @@ class CheckerTest(unittest.TestCase):
         from dmoj.checkers.identical import check
 
         def is_pe(res, feedback='Presentation Error, check your whitespace'):
-            return res is not True and not res.passed and res.feedback == feedback
+            return (
+                res is not True and not res.passed and res.feedback == feedback
+            )
 
         assert check(b'a\nb\nc', b'a\nb\nc')
         assert check(b'a\nb\nc', b'a\nb\nc')
         assert is_pe(check(b'a \nb\nc', b'a\nb\nc'))
         assert is_pe(check(b'a\nb\nc', b'a\nb\nc\n'))
-        assert is_pe(check(b'a\nb\nc', b'a\nb\nc\n', pe_allowed=False), feedback=None)
+        assert is_pe(
+            check(b'a\nb\nc', b'a\nb\nc\n', pe_allowed=False), feedback=None
+        )
 
     def test_sorted(self):
         from dmoj.checkers.sorted import check

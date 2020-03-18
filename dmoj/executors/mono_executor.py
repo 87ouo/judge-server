@@ -35,8 +35,15 @@ class MonoExecutor(CompiledExecutor):
     fs = ['/etc/mono/']
     # Mono sometimes forks during its crashdump procedure, but continues even if
     # the call to fork fails.
-    syscalls = ['sched_setscheduler', 'wait4', 'rt_sigsuspend', 'msync',
-                'fadvise64', 'clock_nanosleep', ('fork', ACCESS_EAGAIN)]
+    syscalls = [
+        'sched_setscheduler',
+        'wait4',
+        'rt_sigsuspend',
+        'msync',
+        'fadvise64',
+        'clock_nanosleep',
+        ('fork', ACCESS_EAGAIN),
+    ]
 
     def get_env(self):
         env = super().get_env()
@@ -68,7 +75,9 @@ class MonoExecutor(CompiledExecutor):
             result.result_flag |= Result.MLE
 
     def parse_feedback_from_stderr(self, stderr, process):
-        match = deque(reexception.finditer(utf8text(stderr, 'replace')), maxlen=1)
+        match = deque(
+            reexception.finditer(utf8text(stderr, 'replace')), maxlen=1
+        )
         if not match:
             return ''
 
@@ -77,6 +86,8 @@ class MonoExecutor(CompiledExecutor):
 
     @classmethod
     def initialize(cls):
-        if 'mono' not in cls.runtime_dict or not os.path.isfile(cls.runtime_dict['mono']):
+        if 'mono' not in cls.runtime_dict or not os.path.isfile(
+            cls.runtime_dict['mono']
+        ):
             return False
         return super().initialize()

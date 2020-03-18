@@ -9,7 +9,11 @@ class ShowCommand(Command):
     help = 'Shows file based on submission ID or filename.'
 
     def _populate_parser(self):
-        self.arg_parser.add_argument('id_or_source', help='id or path of submission to show', metavar='<source>')
+        self.arg_parser.add_argument(
+            'id_or_source',
+            help='id or path of submission to show',
+            metavar='<source>',
+        )
 
     def get_data(self, id_or_source):
         try:
@@ -34,4 +38,8 @@ class ShowCommand(Command):
         args = self.arg_parser.parse_args(line)
         data, lexer = self.get_data(args.id_or_source)
 
-        print(pygments.highlight(data, lexer, pygments.formatters.Terminal256Formatter()))
+        print(
+            pygments.highlight(
+                data, lexer, pygments.formatters.Terminal256Formatter()
+            )
+        )

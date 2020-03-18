@@ -4,7 +4,9 @@ import subprocess
 from dmoj.executors.java_executor import JavaExecutor
 from dmoj.utils.unicode import utf8text
 
-with open(os.path.join(os.path.dirname(__file__), 'scala-security.policy')) as policy_file:
+with open(
+    os.path.join(os.path.dirname(__file__), 'scala-security.policy')
+) as policy_file:
     policy = policy_file.read()
 
 
@@ -55,17 +57,28 @@ object self_test extends App {
 
         scala = result.pop('scala')
         with open(os.devnull, 'w') as devnull:
-            process = subprocess.Popen(['bash', '-x', scala, '-usebootcp', '-version'],
-                                       stdout=devnull, stderr=subprocess.PIPE)
+            process = subprocess.Popen(
+                ['bash', '-x', scala, '-usebootcp', '-version'],
+                stdout=devnull,
+                stderr=subprocess.PIPE,
+            )
         output = utf8text(process.communicate()[1])
-        log = [i for i in output.split('\n') if 'scala.tools.nsc.MainGenericRunner' in i]
+        log = [
+            i
+            for i in output.split('\n')
+            if 'scala.tools.nsc.MainGenericRunner' in i
+        ]
 
         if not log:
             return result, False, 'Failed to parse: %s' % scala
 
         cmdline = log[-1].lstrip('+ ').split()
-        result['scala_vm'] = cls.unravel_java(cls.find_command_from_list([cmdline[0]]))
-        result['scala_args'] = [i for i in cmdline[1:-1] if not i.startswith(('-Xmx', '-Xms'))]
+        result['scala_vm'] = cls.unravel_java(
+            cls.find_command_from_list([cmdline[0]])
+        )
+        result['scala_args'] = [
+            i for i in cmdline[1:-1] if not i.startswith(('-Xmx', '-Xms'))
+        ]
 
         data = cls.autoconfig_run_test(result)
         if data[1]:

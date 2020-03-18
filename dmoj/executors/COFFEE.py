@@ -8,8 +8,19 @@ class Executor(ScriptExecutor):
     name = 'COFFEE'
     nproc = -1
     command = 'node'
-    syscalls = ['newselect', 'select', 'poll', 'epoll_create1', 'epoll_ctl',
-                'epoll_wait', 'epoll_pwait', 'sched_yield', 'setrlimit', 'eventfd2', 'statx']
+    syscalls = [
+        'newselect',
+        'select',
+        'poll',
+        'epoll_create1',
+        'epoll_ctl',
+        'epoll_wait',
+        'epoll_pwait',
+        'sched_yield',
+        'setrlimit',
+        'eventfd2',
+        'statx',
+    ]
     test_program = '''\
 process.stdin.on 'readable', () ->
   chunk = process.stdin.read()
@@ -20,7 +31,9 @@ process.stdin.on 'readable', () ->
 
     @classmethod
     def initialize(cls):
-        if 'coffee' not in cls.runtime_dict or not os.path.isfile(cls.runtime_dict['coffee']):
+        if 'coffee' not in cls.runtime_dict or not os.path.isfile(
+            cls.runtime_dict['coffee']
+        ):
             return False
         return super().initialize()
 
@@ -32,7 +45,10 @@ process.stdin.on 'readable', () ->
 
     @classmethod
     def get_versionable_commands(cls):
-        return ('coffee', cls.runtime_dict['coffee']), ('node', cls.runtime_dict['node'])
+        return (
+            ('coffee', cls.runtime_dict['coffee']),
+            ('node', cls.runtime_dict['node']),
+        )
 
     @classmethod
     def get_find_first_mapping(cls):

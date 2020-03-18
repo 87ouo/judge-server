@@ -18,4 +18,6 @@ int main() {
 '''
 
     def get_flags(self):
-        return (['-std=%s' % self.std] if self.std else []) + super().get_flags()
+        return (
+            ['-std=%s' % self.std] if self.std else []
+        ) + super().get_flags()

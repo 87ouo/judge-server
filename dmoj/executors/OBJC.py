@@ -38,11 +38,17 @@ int main (int argc, const char * argv[]) {
 
     @classmethod
     def initialize(cls):
-        if 'gnustep-config' not in env['runtime'] or not os.path.isfile(env['runtime']['gnustep-config']):
+        if 'gnustep-config' not in env['runtime'] or not os.path.isfile(
+            env['runtime']['gnustep-config']
+        ):
             return False
         try:
-            cls.objc_flags = check_output([env['runtime']['gnustep-config'], '--objc-flags']).split()
-            cls.objc_ldflags = check_output([env['runtime']['gnustep-config'], '--base-libs']).split()
+            cls.objc_flags = check_output(
+                [env['runtime']['gnustep-config'], '--objc-flags']
+            ).split()
+            cls.objc_ldflags = check_output(
+                [env['runtime']['gnustep-config'], '--base-libs']
+            ).split()
         except CalledProcessError:
             return False
         return super().initialize()

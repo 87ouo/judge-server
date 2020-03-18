@@ -12,7 +12,9 @@ from dmoj.utils.unicode import utf8bytes, utf8text
 def strsignal(signo):
     # in large part from http://code.activestate.com/recipes/578899-strsignal/
     libc = ctypes.CDLL(ctypes.util.find_library("c"))
-    strsignal_c = ctypes.CFUNCTYPE(ctypes.c_char_p, ctypes.c_int)(("strsignal", libc), ((1,),))
+    strsignal_c = ctypes.CFUNCTYPE(ctypes.c_char_p, ctypes.c_int)(
+        ("strsignal", libc), ((1,),)
+    )
     NSIG = signal.NSIG
 
     # The behavior of the C library strsignal() is unspecified if
@@ -39,7 +41,9 @@ def find_exe_in_path(path):
 
 def file_info(path, split=re.compile(r'[\s,]').split):
     try:
-        return split(utf8text(subprocess.check_output(['file', '-b', '-L', path])))
+        return split(
+            utf8text(subprocess.check_output(['file', '-b', '-L', path]))
+        )
     except (OSError, subprocess.CalledProcessError):
         raise IOError('call to file(1) failed -- does the utility exist?')
 

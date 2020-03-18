@@ -12,7 +12,10 @@ GCC_COMPILE = os.environ.copy()
 GCC_COMPILE.update(env.runtime.gcc_compile or {})
 MAX_ERRORS = 5
 
-recppexc = re.compile(br"terminate called after throwing an instance of \'([A-Za-z0-9_:]+)\'\r?$", re.M)
+recppexc = re.compile(
+    br"terminate called after throwing an instance of \'([A-Za-z0-9_:]+)\'\r?$",
+    re.M,
+)
 
 
 class GCCExecutor(CompiledExecutor):
@@ -45,9 +48,15 @@ class GCCExecutor(CompiledExecutor):
     def get_binary_cache_key(self) -> bytes:
         command = self.get_command()
         assert command is not None
-        key_components = ([self.problem, command, self.get_march_flag()] +
-                          self.get_defines() + self.get_flags() + self.get_ldflags())
-        return utf8bytes(''.join(key_components)) + b''.join(self.source_dict.values())
+        key_components = (
+            [self.problem, command, self.get_march_flag()]
+            + self.get_defines()
+            + self.get_flags()
+            + self.get_ldflags()
+        )
+        return utf8bytes(''.join(key_components)) + b''.join(
+            self.source_dict.values()
+        )
 
     def get_ldflags(self) -> List[str]:
         return []
@@ -61,9 +70,16 @@ class GCCExecutor(CompiledExecutor):
     def get_compile_args(self) -> List[str]:
         command = self.get_command()
         assert command is not None
-        return ([command, '-Wall'] + (['-fdiagnostics-color=always'] if self.has_color else []) +
-                self.source_paths + self.get_defines() + ['-O2', '-lm', self.get_march_flag()] +
-                self.get_flags() + self.get_ldflags() + ['-s', '-o', self.get_compiled_file()])
+        return (
+            [command, '-Wall']
+            + (['-fdiagnostics-color=always'] if self.has_color else [])
+            + self.source_paths
+            + self.get_defines()
+            + ['-O2', '-lm', self.get_march_flag()]
+            + self.get_flags()
+            + self.get_ldflags()
+            + ['-s', '-o', self.get_compiled_file()]
+        )
 
     def get_compile_env(self) -> dict:
         return GCC_COMPILE
@@ -105,9 +121,14 @@ class GCCExecutor(CompiledExecutor):
             executor = type('Executor', (cls,), {'runtime_dict': result})
             executor.__module__ = cls.__module__
             errors = []
-            success = executor.run_self_test(output=False, error_callback=errors.append)
+            success = executor.run_self_test(
+                output=False, error_callback=errors.append
+            )
             if success:
-                message = 'Using %s (%s target)' % (result[cls.command], target or 'generic')
+                message = 'Using %s (%s target)' % (
+                    result[cls.command],
+                    target or 'generic',
+                )
                 # Don't pollute the YAML in the default case
                 if target == 'native':
                     del result[cls.arch]

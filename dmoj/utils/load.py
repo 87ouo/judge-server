@@ -4,7 +4,11 @@ from importlib import import_module
 
 
 def get_available_modules(pattern, dirname, only=None, exclude=None):
-    to_load = {i.group(1) for i in map(pattern.match, os.listdir(dirname)) if i is not None}
+    to_load = {
+        i.group(1)
+        for i in map(pattern.match, os.listdir(dirname))
+        if i is not None
+    }
     if only:
         to_load &= only
     if exclude:
@@ -20,7 +24,9 @@ def load_module(name, ignored_errors):
             traceback.print_exc()
 
 
-def load_modules(to_load, load, attr, modules_dict, excluded_aliases, loading_message=None):
+def load_modules(
+    to_load, load, attr, modules_dict, excluded_aliases, loading_message=None
+):
     if loading_message:
         print(loading_message)
 

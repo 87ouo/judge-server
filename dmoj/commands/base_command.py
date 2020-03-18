@@ -28,7 +28,9 @@ class Command:
 
     def __init__(self, judge):
         self.judge = judge
-        self.arg_parser = CommandArgumentParser(prog=self.name, description=self.help)
+        self.arg_parser = CommandArgumentParser(
+            prog=self.name, description=self.help
+        )
         self._populate_parser()
 
     def get_source(self, source_file):
@@ -59,7 +61,9 @@ class Command:
                 temp.seek(0)
                 src = temp.read()
         else:
-            print_ansi('#ansi[$EDITOR not set, falling back to stdin](yellow)\n')
+            print_ansi(
+                '#ansi[$EDITOR not set, falling back to stdin](yellow)\n'
+            )
             src = []
             try:
                 while True:

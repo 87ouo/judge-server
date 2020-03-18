@@ -31,10 +31,16 @@ int main(int argc, char **argv) {
 }
 '''
 
-trans = {ord('>'): b'++p;', ord('<'): b'--p;',
-         ord('+'): b'++*p;', ord('-'): b'--*p;',
-         ord('.'): b'putchar(*p);', ord(','): b'*p=getchar();',
-         ord('['): b'while(*p){', ord(']'): b'}'}
+trans = {
+    ord('>'): b'++p;',
+    ord('<'): b'--p;',
+    ord('+'): b'++*p;',
+    ord('-'): b'--*p;',
+    ord('.'): b'putchar(*p);',
+    ord(','): b'*p=getchar();',
+    ord('['): b'while(*p){',
+    ord(']'): b'}',
+}
 
 
 class Executor(CExecutor):
@@ -44,13 +50,22 @@ class Executor(CExecutor):
     def __init__(self, problem_id, source_code, **kwargs):
         if self._has_invalid_brackets(source_code):
             raise CompileError(b'Unmatched brackets\n')
-        code = template.replace(b'{code}', b''.join(map(trans.get, source_code, itertools.repeat(b''))))
+        code = template.replace(
+            b'{code}',
+            b''.join(map(trans.get, source_code, itertools.repeat(b''))),
+        )
         super().__init__(problem_id, code, **kwargs)
 
     def get_compile_args(self) -> List[str]:
         command = self.get_command()
         assert command is not None
-        return [command, '-O0', *self.source_paths, '-o', self.get_compiled_file()]
+        return [
+            command,
+            '-O0',
+            *self.source_paths,
+            '-o',
+            self.get_compiled_file(),
+        ]
 
     def launch(self, *args, **kwargs):
         memory = kwargs['memory']
@@ -72,4 +87,4 @@ class Executor(CExecutor):
 
     @classmethod
     def get_runtime_versions(cls):
-        return ('bf', (1, 33, 7)),
+        return (('bf', (1, 33, 7)),)
